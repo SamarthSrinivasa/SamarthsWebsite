@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pitch Bend Synth — Samarth</title>
+<meta name="description" content="A browser synth played with your keyboard, with cursor-controlled pitch bend." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css" />
+<script>
+  // Set theme before paint to avoid flash of wrong theme
+  (function () {
+    var stored = localStorage.getItem('theme');
+    var mode = stored || 'system';
+    var resolved = mode === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : mode;
+    document.documentElement.setAttribute('data-theme', resolved);
+    document.documentElement.setAttribute('data-theme-pref', mode);
+  })();
+</script>
+<style>
+  body { min-height: 100vh; }
+
+  .synth-page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: clamp(48px, 8vh, 96px) clamp(20px, 6vw, 64px) 80px;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    text-decoration: none;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+  }
+  .back-link:hover { color: var(--text); }
+
+  .synth-title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: "opsz" 40;
+    font-size: clamp(1.9rem, 5vw, 2.5rem);
+    margin: 22px 0 6px;
+  }
+
+  .synth-sub {
+    font-size: 0.98rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+    margin: 0 0 34px;
+    max-width: 56ch;
+  }
+
+  .synth-sub kbd {
+    font-family: var(--font-mono);
+    font-size: 0.82em;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  .audio-hint {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    margin: -20px 0 28px;
+  }
+  .audio-hint.visible { display: block; }
+
+  /* ---------- Panel ---------- */
+  .synth-panel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    padding: clamp(18px, 4vw, 30px);
+  }
+
+  .controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 26px;
+  }
+
+  .control {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: lowercase;
+    color: var(--text-muted);
+  }
+
+  .control select,
+  .control input[type="range"] {
+    accent-color: var(--accent);
+  }
+
+  .control select {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 8px;
+  }
+
+  .octave-display {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    min-width: 34px;
+    text-align: center;
+  }
+
+  /* ---------- Keyboard ---------- */
+  .keyboard-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 8px 0 22px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .keyboard {
+    position: relative;
+    display: flex;
+    height: 168px;
+    width: 620px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .white-key {
+    position: relative;
+    flex: 1 0 auto;
+    width: 62px;
+    height: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0 0 6px 6px;
+    margin-left: -1px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 10px;
+    transition: background 0.06s ease;
+  }
+
+  .white-key .key-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .white-key.active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    z-index: 1;
+  }
+  .white-key.active .key-label { color: var(--accent); }
+
+  .black-key {
+    position: absolute;
+    top: 0;
+    width: 38px;
+    height: 60%;
+    background: var(--text);
+    border-radius: 0 0 5px 5px;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  }
+
+  .black-key .key-label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--bg);
+    text-transform: uppercase;
+  }
+
+  .black-key.active {
+    background: var(--accent);
+  }
+
+  /* ---------- Pitch strip ---------- */
+  .pitch-strip-wrap {
+    width: 620px;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .pitch-strip-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .pitch-strip {
+    position: relative;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    cursor: crosshair;
+    overflow: hidden;
+  }
+
+  .pitch-strip::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .pitch-indicator {
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    margin-left: -16px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.85;
+    pointer-events: none;
+    transition: background 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--bg);
+    font-weight: 500;
+  }
+
+  .now-playing {
+    margin-top: 20px;
+    min-height: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  .now-playing .note-chip {
+    display: inline-block;
+    color: var(--accent);
+    margin-right: 8px;
+  }
+
+  @media (max-width: 680px) {
+    .keyboard, .pitch-strip-wrap { width: 460px; }
+    .white-key { width: 46px; }
+    .black-key { width: 28px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="synth-page">
+    <a class="back-link" href="../index.html#projects">&larr; back to projects</a>
+
+    <h1 class="synth-title">Pitch Bend Synth</h1>
+    <p class="synth-sub">
+      Play notes with <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd><kbd>G</kbd><kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd><kbd>;</kbd>
+      and the black keys <kbd>W</kbd><kbd>E</kbd><kbd>T</kbd><kbd>Y</kbd><kbd>U</kbd><kbd>O</kbd><kbd>P</kbd> — same layout as GarageBand's
+      musical typing. <kbd>Z</kbd> / <kbd>X</kbd> shift octaves. Move your cursor left and right across the strip below
+      to bend pitch, just like the pitch wheel on a physical MIDI keyboard.
+    </p>
+    <p class="audio-hint" id="audioHint">Click anywhere, or press a key, to start audio.</p>
+
+    <div class="synth-panel">
+      <div class="controls-row">
+        <label class="control">
+          waveform
+          <select id="waveform">
+            <option value="triangle" selected>triangle</option>
+            <option value="sine">sine</option>
+            <option value="sawtooth">sawtooth</option>
+            <option value="square">square</option>
+          </select>
+        </label>
+
+        <label class="control">
+          bend range
+          <select id="bendRange">
+            <option value="1">±1 semitone</option>
+            <option value="2" selected>±2 semitones</option>
+            <option value="5">±5 semitones</option>
+            <option value="12">±12 semitones (octave)</option>
+          </select>
+        </label>
+
+        <label class="control">
+          volume
+          <input type="range" id="volume" min="0" max="1" step="0.01" value="0.6" />
+        </label>
+
+        <div class="control">
+          octave
+          <span class="octave-display" id="octaveDisplay">4</span>
+        </div>
+      </div>
+
+      <div class="keyboard-wrap">
+        <div class="keyboard" id="keyboard"></div>
+      </div>
+
+      <div class="pitch-strip-wrap">
+        <div class="pitch-strip-label">
+          <span>&larr; bend down</span>
+          <span id="bendReadout">0 st</span>
+          <span>bend up &rarr;</span>
+        </div>
+        <div class="pitch-strip" id="pitchStrip">
+          <div class="pitch-indicator" id="pitchIndicator"></div>
+        </div>
+      </div>
+
+      <div class="now-playing" id="nowPlaying"></div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ---------- Note map (GarageBand-style "musical typing" layout) ----------
+    // offset is semitones above C of the current octave; row2 keys are +12 (next octave up)
+    var KEY_NOTES = {
+      'a': { offset: 0,  black: false }, // C
+      'w': { offset: 1,  black: true  }, // C#
+      's': { offset: 2,  black: false }, // D
+      'e': { offset: 3,  black: true  }, // D#
+      'd': { offset: 4,  black: false }, // E
+      'f': { offset: 5,  black: false }, // F
+      't': { offset: 6,  black: true  }, // F#
+      'g': { offset: 7,  black: false }, // G
+      'y': { offset: 8,  black: true  }, // G#
+      'h': { offset: 9,  black: false }, // A
+      'u': { offset: 10, black: true  }, // A#
+      'j': { offset: 11, black: false }, // B
+      'k': { offset: 12, black: false }, // C (oct+1)
+      'o': { offset: 13, black: true  }, // C# (oct+1)
+      'l': { offset: 14, black: false }, // D (oct+1)
+      'p': { offset: 15, black: true  }, // D# (oct+1)
+      ';': { offset: 16, black: false }  // E (oct+1)
+    };
+
+    var WHITE_ORDER = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';'];
+    var BLACK_LAYOUT = [
+      { key: 'w', afterWhiteIndex: 0 },
+      { key: 'e', afterWhiteIndex: 1 },
+      { key: 't', afterWhiteIndex: 3 },
+      { key: 'y', afterWhiteIndex: 4 },
+      { key: 'u', afterWhiteIndex: 5 },
+      { key: 'o', afterWhiteIndex: 7 },
+      { key: 'p', afterWhiteIndex: 8 }
+    ];
+
+    var NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+    // ---------- State ----------
+    var octave = 4;
+    var bendRangeSemitones = 2;
+    var waveform = 'triangle';
+    var masterVolume = 0.6;
+    var lastNormalizedX = 0; // -1..1
+    var currentBend = 0;     // semitones
+    var releaseAnim = null;
+
+    var audioCtx = null;
+    var masterGain = null;
+    var activeVoices = {}; // key -> { osc, gain, midi }
+
+    function ensureAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = masterVolume;
+      masterGain.connect(audioCtx.destination);
+      document.getElementById('audioHint').classList.remove('visible');
+    }
+
+    function midiFromKey(key) {
+      var def = KEY_NOTES[key];
+      if (!def) return null;
+      var base = 12 * (octave + 1); // MIDI number of C in current octave
+      return base + def.offset;
+    }
+
+    function freqFromMidi(midi) {
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    function noteName(midi) {
+      var name = NOTE_NAMES[((midi % 12) + 12) % 12];
+      var oct = Math.floor(midi / 12) - 1;
+      return name + oct;
+    }
+
+    // ---------- Voice handling ----------
+    function startNote(key) {
+      if (activeVoices[key]) return; // already sounding (auto-repeat)
+      var midi = midiFromKey(key);
+      if (midi === null) return;
+      ensureAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      var osc = audioCtx.createOscillator();
+      osc.type = waveform;
+      osc.frequency.value = freqFromMidi(midi);
+      osc.detune.value = currentBend * 100;
+
+      var gain = audioCtx.createGain();
+      var now = audioCtx.currentTime;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.28, now + 0.012);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(now);
+
+      activeVoices[key] = { osc: osc, gain: gain, midi: midi };
+      updateKeyVisual(key, true);
+      updateNowPlaying();
+    }
+
+    function stopNote(key) {
+      var voice = activeVoices[key];
+      if (!voice) return;
+      var now = audioCtx.currentTime;
+      voice.gain.gain.cancelScheduledValues(now);
+      voice.gain.gain.setValueAtTime(voice.gain.gain.value, now);
+      voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+      voice.osc.stop(now + 0.16);
+      delete activeVoices[key];
+      updateKeyVisual(key, false);
+      updateNowPlaying();
+    }
+
+    function applyBendToActiveVoices(bendSemitones) {
+      if (!audioCtx) return;
+      var now = audioCtx.currentTime;
+      Object.keys(activeVoices).forEach(function (key) {
+        activeVoices[key].osc.detune.setTargetAtTime(bendSemitones * 100, now, 0.01);
+      });
+    }
+
+    function updateNowPlaying() {
+      var el = document.getElementById('nowPlaying');
+      var keys = Object.keys(activeVoices);
+      if (!keys.length) { el.textContent = ''; return; }
+      el.innerHTML = keys.map(function (k) {
+        return '<span class="note-chip">' + noteName(activeVoices[k].midi) + '</span>';
+      }).join('');
+    }
+
+    // ---------- Keyboard UI ----------
+    var keyboardEl = document.getElementById('keyboard');
+    var whiteKeyEls = {};
+    var blackKeyEls = {};
+
+    function buildKeyboard() {
+      WHITE_ORDER.forEach(function (key) {
+        var el = document.createElement('div');
+        el.className = 'white-key';
+        el.dataset.key = key;
+        var label = document.createElement('span');
+        label.className = 'key-label';
+        label.textContent = key;
+        el.appendChild(label);
+        keyboardEl.appendChild(el);
+        whiteKeyEls[key] = el;
+      });
+
+      // position black keys after layout so we can read white key widths
+      requestAnimationFrame(function () {
+        var whiteWidth = whiteKeyEls[WHITE_ORDER[0]].offsetWidth;
+        var blackWidth = 38 * (whiteWidth / 62); // scale with responsive width
+        BLACK_LAYOUT.forEach(function (b) {
+          var el = document.createElement('div');
+          el.className = 'black-key';
+          el.dataset.key = b.key;
+          el.style.width = blackWidth + 'px';
+          el.style.left = ((b.afterWhiteIndex + 1) * whiteWidth - blackWidth / 2) + 'px';
+          var label = document.createElement('span');
+          label.className = 'key-label';
+          label.textContent = b.key;
+          el.appendChild(label);
+          keyboardEl.appendChild(el);
+          blackKeyEls[b.key] = el;
+        });
+      });
+    }
+
+    function updateKeyVisual(key, active) {
+      var el = whiteKeyEls[key] || blackKeyEls[key];
+      if (el) el.classList.toggle('active', active);
+    }
+
+    // Mouse/touch support directly on the keyboard keys too
+    function bindKeyPointerEvents(el, key) {
+      el.addEventListener('mousedown', function () { startNote(key); });
+      el.addEventListener('mouseup', function () { stopNote(key); });
+      el.addEventListener('mouseleave', function () { if (activeVoices[key]) stopNote(key); });
+      el.addEventListener('touchstart', function (e) { e.preventDefault(); startNote(key); }, { passive: false });
+      el.addEventListener('touchend', function (e) { e.preventDefault(); stopNote(key); });
+    }
+
+    buildKeyboard();
+    requestAnimationFrame(function () {
+      Object.keys(whiteKeyEls).forEach(function (k) { bindKeyPointerEvents(whiteKeyEls[k], k); });
+      Object.keys(blackKeyEls).forEach(function (k) { bindKeyPointerEvents(blackKeyEls[k], k); });
+    });
+
+    // ---------- Computer keyboard input ----------
+    var pressedKeys = {};
+
+    function isFormField(el) {
+      var tag = el.tagName;
+      return tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA';
+    }
+
+    window.addEventListener('keydown', function (e) {
+      if (isFormField(e.target)) return;
+      var key = e.key.toLowerCase();
+
+      if (key === 'z') { setOctave(octave - 1); return; }
+      if (key === 'x') { setOctave(octave + 1); return; }
+
+      if (KEY_NOTES[key] && !pressedKeys[key]) {
+        pressedKeys[key] = true;
+        e.preventDefault();
+        startNote(key);
+      }
+    });
+
+    window.addEventListener('keyup', function (e) {
+      var key = e.key.toLowerCase();
+      if (pressedKeys[key]) {
+        pressedKeys[key] = false;
+        stopNote(key);
+      }
+    });
+
+    function setOctave(next) {
+      octave = Math.max(1, Math.min(7, next));
+      document.getElementById('octaveDisplay').textContent = octave;
+    }
+
+    // ---------- Pitch strip (cursor-controlled bend) ----------
+    var strip = document.getElementById('pitchStrip');
+    var indicator = document.getElementById('pitchIndicator');
+    var readout = document.getElementById('bendReadout');
+
+    function setBend(semitones, normalizedX) {
+      currentBend = semitones;
+      lastNormalizedX = normalizedX;
+      var pct = (normalizedX + 1) / 2; // 0..1
+      indicator.style.left = (pct * 100) + '%';
+      readout.textContent = (semitones > 0 ? '+' : '') + semitones.toFixed(2) + ' st';
+      applyBendToActiveVoices(semitones);
+    }
+
+    strip.addEventListener('mousemove', function (e) {
+      if (releaseAnim) { cancelAnimationFrame(releaseAnim); releaseAnim = null; }
+      var rect = strip.getBoundingClientRect();
+      var x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+      var normalized = (x / rect.width) * 2 - 1; // -1..1
+      setBend(normalized * bendRangeSemitones, normalized);
+    });
+
+    strip.addEventListener('mouseleave', function () {
+      animateBendToCenter();
+    });
+
+    function animateBendToCenter() {
+      var startBend = currentBend;
+      var startX = lastNormalizedX;
+      var startTime = performance.now();
+      var duration = 180;
+
+      function step(now) {
+        var t = Math.min(1, (now - startTime) / duration);
+        var ease = 1 - Math.pow(1 - t, 2);
+        var bend = startBend * (1 - ease);
+        var nx = startX * (1 - ease);
+        setBend(bend, nx);
+        if (t < 1) {
+          releaseAnim = requestAnimationFrame(step);
+        } else {
+          releaseAnim = null;
+        }
+      }
+      releaseAnim = requestAnimationFrame(step);
+    }
+
+    // ---------- Controls ----------
+    document.getElementById('waveform').addEventListener('change', function (e) {
+      waveform = e.target.value;
+      Object.keys(activeVoices).forEach(function (k) { activeVoices[k].osc.type = waveform; });
+    });
+
+    document.getElementById('bendRange').addEventListener('change', function (e) {
+      bendRangeSemitones = parseFloat(e.target.value);
+      setBend(lastNormalizedX * bendRangeSemitones, lastNormalizedX);
+    });
+
+    document.getElementById('volume').addEventListener('input', function (e) {
+      masterVolume = parseFloat(e.target.value);
+      if (masterGain) masterGain.gain.value = masterVolume;
+    });
+
+    // Show a hint until audio has actually started
+    document.getElementById('audioHint').classList.add('visible');
+    window.addEventListener('mousedown', ensureAudio, { once: true });
+    window.addEventListener('keydown', ensureAudio, { once: true });
+
+    // ---------- Theme toggle (shared with rest of site, no nav on this page) ----------
+    // Sync theme if changed on another tab
+    window.addEventListener('storage', function (e) {
+      if (e.key !== 'theme') return;
+      var mode = e.newValue || 'system';
+      var resolved = mode === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : mode;
+      document.documentElement.setAttribute('data-theme', resolved);
+      document.documentElement.setAttribute('data-theme-pref', mode);
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -245,6 +245,22 @@ main { position: relative; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-elevated);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+a.project-item {
+  cursor: pointer;
+}
+
+a.project-item:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+a.project-item:hover .project-name {
+  color: var(--accent);
 }
 
 .project-item--empty {
