@@ -27,22 +27,8 @@
   .synth-page {
     max-width: 680px;
     margin: 0 auto;
-    padding: clamp(48px, 8vh, 96px) clamp(20px, 6vw, 64px) 80px;
+    padding: clamp(32px, 6vh, 72px) clamp(20px, 6vw, 64px) 80px;
   }
-
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    letter-spacing: 0.04em;
-    text-transform: lowercase;
-    text-decoration: none;
-    color: var(--text-muted);
-    transition: color 0.2s ease;
-  }
-  .back-link:hover { color: var(--text); }
 
   .synth-title {
     font-family: var(--font-display);
@@ -106,11 +92,13 @@
   }
 
   .control select,
-  .control input[type="range"] {
+  .control input[type="range"],
+  .control input[type="number"] {
     accent-color: var(--accent);
   }
 
-  .control select {
+  .control select,
+  .control input[type="number"] {
     font-family: var(--font-mono);
     font-size: 0.78rem;
     color: var(--text);
@@ -145,15 +133,13 @@
     position: relative;
     display: flex;
     height: 168px;
-    width: 620px;
     flex-shrink: 0;
     user-select: none;
   }
 
   .white-key {
     position: relative;
-    flex: 1 0 auto;
-    width: 62px;
+    flex: 0 0 auto;
     height: 100%;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -183,27 +169,30 @@
   .black-key {
     position: absolute;
     top: 0;
-    width: 38px;
     height: 60%;
-    background: var(--text);
+    background: #1b1f1b;
     border-radius: 0 0 5px 5px;
     z-index: 2;
     display: flex;
     align-items: flex-end;
     justify-content: center;
     padding-bottom: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.35);
   }
 
   .black-key .key-label {
     font-family: var(--font-mono);
     font-size: 0.62rem;
-    color: var(--bg);
+    color: #f1f3ee;
     text-transform: uppercase;
   }
 
   .black-key.active {
     background: var(--accent);
+  }
+
+  .key-label-muted {
+    opacity: 0.55;
   }
 
   /* ---------- Pitch strip ---------- */
@@ -278,24 +267,115 @@
     margin-right: 8px;
   }
 
+  /* ---------- Looper ---------- */
+  .loop-panel {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+  }
+
+  .loop-settings-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .loop-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .loop-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .loop-btn:disabled { opacity: 0.4; cursor: default; }
+  .loop-btn.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+  .metro-btn { min-width: 122px; }
+
+  .bpm-input { width: 64px; }
+
+  .slots-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .loop-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 92px;
+    padding: 10px 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    transition: border-color 0.15s ease;
+  }
+
+  .loop-slot.has-loop { border-color: var(--accent); }
+
+  .slot-num {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .slot-status {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    min-height: 14px;
+    letter-spacing: 0.01em;
+  }
+
+  .loop-slot .loop-btn { width: 100%; padding: 4px 6px; text-align: center; }
+
   @media (max-width: 680px) {
-    .keyboard, .pitch-strip-wrap { width: 460px; }
-    .white-key { width: 46px; }
-    .black-key { width: 28px; }
+    .pitch-strip-wrap { width: 460px; }
   }
 </style>
 </head>
 <body>
 
-  <div class="synth-page">
-    <a class="back-link" href="../index.html#projects">&larr; back to projects</a>
+  <header class="topbar">
+    <nav class="nav" aria-label="Primary">
+      <a href="../index.html#home" class="nav-link">Home</a>
+      <a href="../index.html#about" class="nav-link">About</a>
+      <a href="../index.html#projects" class="nav-link active">Projects</a>
+    </nav>
 
+    <div class="theme-toggle" role="group" aria-label="Theme">
+      <button class="theme-btn" data-mode="light" aria-label="Light mode" title="Light">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="1.5" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22.5" y2="12"/><line x1="4.4" y1="4.4" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.6" y2="19.6"/><line x1="4.4" y1="19.6" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.6" y2="4.4"/></g></svg>
+      </button>
+      <button class="theme-btn" data-mode="dark" aria-label="Dark mode" title="Dark">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M20.7 14.9A8.6 8.6 0 0 1 9.1 3.3a.7.7 0 0 0-.9-.9 9.9 9.9 0 1 0 13.4 13.4.7.7 0 0 0-.9-.9Z"/></svg>
+      </button>
+      <button class="theme-btn" data-mode="system" aria-label="System preference" title="System">
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="12" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="8" y1="20" x2="16" y2="20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="12" y1="16.5" x2="12" y2="20" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+      <span class="theme-indicator" aria-hidden="true"></span>
+    </div>
+  </header>
+
+  <div class="synth-page">
     <h1 class="synth-title">Pitch Bend Synth</h1>
     <p class="synth-sub">
       Play notes with <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd><kbd>G</kbd><kbd>H</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd><kbd>;</kbd>
       and the black keys <kbd>W</kbd><kbd>E</kbd><kbd>T</kbd><kbd>Y</kbd><kbd>U</kbd><kbd>O</kbd><kbd>P</kbd> — same layout as GarageBand's
       musical typing. <kbd>Z</kbd> / <kbd>X</kbd> shift octaves. Move your cursor left and right across the strip below
-      to bend pitch, just like the pitch wheel on a physical MIDI keyboard.
+      to bend pitch, just like the pitch wheel on a physical MIDI keyboard. Click any extra key on the keyboard to play
+      it directly with your mouse.
     </p>
     <p class="audio-hint" id="audioHint">Click anywhere, or press a key, to start audio.</p>
 
@@ -318,6 +398,16 @@
             <option value="2" selected>±2 semitones</option>
             <option value="5">±5 semitones</option>
             <option value="12">±12 semitones (octave)</option>
+          </select>
+        </label>
+
+        <label class="control">
+          octaves shown
+          <select id="octaveCount">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
           </select>
         </label>
 
@@ -348,6 +438,28 @@
       </div>
 
       <div class="now-playing" id="nowPlaying"></div>
+
+      <div class="loop-panel">
+        <div class="loop-settings-row">
+          <button type="button" class="loop-btn metro-btn" id="metroBtn">metronome: off</button>
+          <label class="control">
+            bpm
+            <input type="number" id="bpmInput" class="bpm-input" min="40" max="240" step="1" value="100" />
+          </label>
+          <label class="control">
+            bars per loop
+            <select id="recordBars">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="4" selected>4</option>
+              <option value="8">8</option>
+              <option value="16">16</option>
+              <option value="32">32</option>
+            </select>
+          </label>
+        </div>
+        <div class="slots-row" id="slotsRow"></div>
+      </div>
     </div>
   </div>
 
@@ -377,21 +489,20 @@
       ';': { offset: 16, black: false }  // E (oct+1)
     };
 
-    var WHITE_ORDER = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';'];
-    var BLACK_LAYOUT = [
-      { key: 'w', afterWhiteIndex: 0 },
-      { key: 'e', afterWhiteIndex: 1 },
-      { key: 't', afterWhiteIndex: 3 },
-      { key: 'y', afterWhiteIndex: 4 },
-      { key: 'u', afterWhiteIndex: 5 },
-      { key: 'o', afterWhiteIndex: 7 },
-      { key: 'p', afterWhiteIndex: 8 }
-    ];
+    var offsetToKeyChar = {};
+    Object.keys(KEY_NOTES).forEach(function (k) { offsetToKeyChar[KEY_NOTES[k].offset] = k; });
+
+    var WHITE_OFFSETS = [0, 2, 4, 5, 7, 9, 11];
+    var WHITE_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    var BLACK_OFFSETS = [1, 3, 6, 8, 10];
+    var BLACK_NAMES = ['C#', 'D#', 'F#', 'G#', 'A#'];
+    var BLACK_AFTER_LOCAL_WHITE = [0, 1, 3, 4, 5];
 
     var NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
     // ---------- State ----------
     var octave = 4;
+    var octaveCount = 2;
     var bendRangeSemitones = 2;
     var waveform = 'triangle';
     var masterVolume = 0.6;
@@ -401,7 +512,7 @@
 
     var audioCtx = null;
     var masterGain = null;
-    var activeVoices = {}; // key -> { osc, gain, midi }
+    var activeVoices = {}; // id -> { osc, gain, midi }
 
     function ensureAudio() {
       if (audioCtx) return;
@@ -429,11 +540,14 @@
       return name + oct;
     }
 
-    // ---------- Voice handling ----------
-    function startNote(key) {
-      if (activeVoices[key]) return; // already sounding (auto-repeat)
-      var midi = midiFromKey(key);
-      if (midi === null) return;
+    function idToOffset(id) {
+      if (id.indexOf('pt:') === 0) return parseInt(id.slice(3), 10);
+      return KEY_NOTES[id] ? KEY_NOTES[id].offset : null;
+    }
+
+    // ---------- Live voice handling ----------
+    function startVoice(id, midi) {
+      if (activeVoices[id]) return; // already sounding (auto-repeat)
       ensureAudio();
       if (audioCtx.state === 'suspended') audioCtx.resume();
 
@@ -451,23 +565,47 @@
       gain.connect(masterGain);
       osc.start(now);
 
-      activeVoices[key] = { osc: osc, gain: gain, midi: midi };
-      updateKeyVisual(key, true);
+      activeVoices[id] = { osc: osc, gain: gain, midi: midi };
+      refreshKeyVisuals();
       updateNowPlaying();
+
+      slots.forEach(function (slot) {
+        if (slot.recording) {
+          slot.notes.push({ id: id, midi: midi, onT: now - slot.recordStartTime, offT: null });
+        }
+      });
     }
 
-    function stopNote(key) {
-      var voice = activeVoices[key];
+    function stopVoice(id) {
+      var voice = activeVoices[id];
       if (!voice) return;
       var now = audioCtx.currentTime;
       voice.gain.gain.cancelScheduledValues(now);
       voice.gain.gain.setValueAtTime(voice.gain.gain.value, now);
       voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
       voice.osc.stop(now + 0.16);
-      delete activeVoices[key];
-      updateKeyVisual(key, false);
+      delete activeVoices[id];
+      refreshKeyVisuals();
       updateNowPlaying();
+
+      slots.forEach(function (slot) {
+        if (slot.recording) {
+          for (var k = slot.notes.length - 1; k >= 0; k--) {
+            if (slot.notes[k].id === id && slot.notes[k].offT === null) {
+              slot.notes[k].offT = now - slot.recordStartTime;
+              break;
+            }
+          }
+        }
+      });
     }
+
+    function startNote(key) {
+      var midi = midiFromKey(key);
+      if (midi === null) return;
+      startVoice(key, midi);
+    }
+    function stopNote(key) { stopVoice(key); }
 
     function applyBendToActiveVoices(bendSemitones) {
       if (!audioCtx) return;
@@ -486,63 +624,109 @@
       }).join('');
     }
 
-    // ---------- Keyboard UI ----------
+    // ---------- Keyboard UI (expands with octaveCount) ----------
     var keyboardEl = document.getElementById('keyboard');
-    var whiteKeyEls = {};
-    var blackKeyEls = {};
+    var keyElsByOffset = {};
+    var loopVisualCounts = {}; // offset -> count of loop-scheduled notes currently sounding
+
+    function applyKeyVisual(offset) {
+      var el = keyElsByOffset[offset];
+      if (!el) return;
+      var liveActive = false;
+      Object.keys(activeVoices).forEach(function (id) {
+        if (idToOffset(id) === offset) liveActive = true;
+      });
+      el.classList.toggle('active', liveActive || (loopVisualCounts[offset] > 0));
+    }
+
+    function refreshKeyVisuals() {
+      Object.keys(keyElsByOffset).forEach(function (offsetStr) {
+        applyKeyVisual(parseInt(offsetStr, 10));
+      });
+    }
+
+    function bumpLoopVisual(offset, delta) {
+      loopVisualCounts[offset] = (loopVisualCounts[offset] || 0) + delta;
+      if (loopVisualCounts[offset] < 0) loopVisualCounts[offset] = 0;
+      applyKeyVisual(offset);
+    }
+
+    function bindKeyPointerEvents(el, offset, qKey) {
+      function press() {
+        if (qKey) startNote(qKey);
+        else startVoice('pt:' + offset, 12 * (octave + 1) + offset);
+      }
+      function release() {
+        if (qKey) stopNote(qKey);
+        else stopVoice('pt:' + offset);
+      }
+      el.addEventListener('mousedown', press);
+      el.addEventListener('mouseup', release);
+      el.addEventListener('mouseleave', function () {
+        var id = qKey || ('pt:' + offset);
+        if (activeVoices[id]) release();
+      });
+      el.addEventListener('touchstart', function (e) { e.preventDefault(); press(); }, { passive: false });
+      el.addEventListener('touchend', function (e) { e.preventDefault(); release(); });
+    }
 
     function buildKeyboard() {
-      WHITE_ORDER.forEach(function (key) {
-        var el = document.createElement('div');
-        el.className = 'white-key';
-        el.dataset.key = key;
-        var label = document.createElement('span');
-        label.className = 'key-label';
-        label.textContent = key;
-        el.appendChild(label);
-        keyboardEl.appendChild(el);
-        whiteKeyEls[key] = el;
-      });
+      keyboardEl.innerHTML = '';
+      keyElsByOffset = {};
+      var whiteEntries = [];
+      var blackEntries = [];
 
-      // position black keys after layout so we can read white key widths
-      requestAnimationFrame(function () {
-        var whiteWidth = whiteKeyEls[WHITE_ORDER[0]].offsetWidth;
-        var blackWidth = 38 * (whiteWidth / 62); // scale with responsive width
-        BLACK_LAYOUT.forEach(function (b) {
+      for (var i = 0; i < octaveCount; i++) {
+        for (var j = 0; j < WHITE_OFFSETS.length; j++) {
+          var offset = i * 12 + WHITE_OFFSETS[j];
+          var qKey = offsetToKeyChar[offset];
           var el = document.createElement('div');
-          el.className = 'black-key';
-          el.dataset.key = b.key;
-          el.style.width = blackWidth + 'px';
-          el.style.left = ((b.afterWhiteIndex + 1) * whiteWidth - blackWidth / 2) + 'px';
+          el.className = 'white-key';
           var label = document.createElement('span');
-          label.className = 'key-label';
-          label.textContent = b.key;
+          label.className = 'key-label' + (qKey ? '' : ' key-label-muted');
+          label.textContent = qKey || WHITE_NAMES[j];
           el.appendChild(label);
           keyboardEl.appendChild(el);
-          blackKeyEls[b.key] = el;
-        });
+          keyElsByOffset[offset] = el;
+          whiteEntries.push({ el: el, offset: offset, qKey: qKey });
+        }
+      }
+
+      for (var oi = 0; oi < octaveCount; oi++) {
+        for (var bj = 0; bj < BLACK_OFFSETS.length; bj++) {
+          var bOffset = oi * 12 + BLACK_OFFSETS[bj];
+          var afterWhiteIndexAbs = oi * 7 + BLACK_AFTER_LOCAL_WHITE[bj];
+          var bqKey = offsetToKeyChar[bOffset];
+          var bEl = document.createElement('div');
+          bEl.className = 'black-key';
+          var bLabel = document.createElement('span');
+          bLabel.className = 'key-label' + (bqKey ? '' : ' key-label-muted');
+          bLabel.textContent = bqKey || BLACK_NAMES[bj];
+          bEl.appendChild(bLabel);
+          keyboardEl.appendChild(bEl);
+          keyElsByOffset[bOffset] = bEl;
+          blackEntries.push({ el: bEl, offset: bOffset, afterWhiteIndexAbs: afterWhiteIndexAbs, qKey: bqKey });
+        }
+      }
+
+      var isNarrow = window.matchMedia('(max-width: 680px)').matches;
+      var whiteWidth = isNarrow ? 42 : 58;
+      var blackWidth = Math.round(whiteWidth * (38 / 62));
+
+      whiteEntries.forEach(function (entry) { entry.el.style.width = whiteWidth + 'px'; });
+      keyboardEl.style.width = (whiteEntries.length * (whiteWidth - 1) + 1) + 'px';
+
+      blackEntries.forEach(function (entry) {
+        entry.el.style.width = blackWidth + 'px';
+        entry.el.style.left = ((entry.afterWhiteIndexAbs + 1) * whiteWidth - blackWidth / 2) + 'px';
       });
-    }
 
-    function updateKeyVisual(key, active) {
-      var el = whiteKeyEls[key] || blackKeyEls[key];
-      if (el) el.classList.toggle('active', active);
-    }
+      whiteEntries.concat(blackEntries).forEach(function (entry) {
+        bindKeyPointerEvents(entry.el, entry.offset, entry.qKey);
+      });
 
-    // Mouse/touch support directly on the keyboard keys too
-    function bindKeyPointerEvents(el, key) {
-      el.addEventListener('mousedown', function () { startNote(key); });
-      el.addEventListener('mouseup', function () { stopNote(key); });
-      el.addEventListener('mouseleave', function () { if (activeVoices[key]) stopNote(key); });
-      el.addEventListener('touchstart', function (e) { e.preventDefault(); startNote(key); }, { passive: false });
-      el.addEventListener('touchend', function (e) { e.preventDefault(); stopNote(key); });
+      refreshKeyVisuals();
     }
-
-    buildKeyboard();
-    requestAnimationFrame(function () {
-      Object.keys(whiteKeyEls).forEach(function (k) { bindKeyPointerEvents(whiteKeyEls[k], k); });
-      Object.keys(blackKeyEls).forEach(function (k) { bindKeyPointerEvents(blackKeyEls[k], k); });
-    });
 
     // ---------- Computer keyboard input ----------
     var pressedKeys = {};
@@ -637,6 +821,11 @@
       setBend(lastNormalizedX * bendRangeSemitones, lastNormalizedX);
     });
 
+    document.getElementById('octaveCount').addEventListener('change', function (e) {
+      octaveCount = parseInt(e.target.value, 10);
+      buildKeyboard();
+    });
+
     document.getElementById('volume').addEventListener('input', function (e) {
       masterVolume = parseFloat(e.target.value);
       if (masterGain) masterGain.gain.value = masterVolume;
@@ -647,17 +836,367 @@
     window.addEventListener('mousedown', ensureAudio, { once: true });
     window.addEventListener('keydown', ensureAudio, { once: true });
 
-    // ---------- Theme toggle (shared with rest of site, no nav on this page) ----------
-    // Sync theme if changed on another tab
-    window.addEventListener('storage', function (e) {
-      if (e.key !== 'theme') return;
-      var mode = e.newValue || 'system';
-      var resolved = mode === 'system'
-        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-        : mode;
-      document.documentElement.setAttribute('data-theme', resolved);
-      document.documentElement.setAttribute('data-theme-pref', mode);
+    // ---------- Looper: transport, metronome, 6 recording slots ----------
+    var transport = { bpm: 100, beatsPerBar: 4, startTime: null };
+    var metronomeOn = false;
+    var nextMetroBeatTime = 0;
+    var metroBeatCount = 0;
+    var recordBars = 4;
+    var schedulerTimer = null;
+
+    var SLOT_COUNT = 6;
+    var slots = [];
+    var slotEls = [];
+    for (var si = 0; si < SLOT_COUNT; si++) {
+      slots.push({
+        armed: false,
+        recording: false,
+        playing: false,
+        notes: [],
+        bars: 0,
+        durationSec: 0,
+        recordStartTime: 0,
+        recordEndTime: 0,
+        nextCycleTime: 0,
+        scheduledOscs: [],
+        pendingVisual: []
+      });
+    }
+
+    function beatSec() { return 60 / transport.bpm; }
+    function barSec() { return beatSec() * transport.beatsPerBar; }
+
+    function ensureTransport() {
+      ensureAudio();
+      if (transport.startTime === null) transport.startTime = audioCtx.currentTime;
+    }
+
+    function nextBarBoundary(fromTime) {
+      ensureTransport();
+      var barLen = barSec();
+      var elapsed = fromTime - transport.startTime;
+      var n = Math.ceil(elapsed / barLen - 1e-9);
+      return transport.startTime + n * barLen;
+    }
+
+    function schedulerActive() {
+      return metronomeOn || slots.some(function (s) { return s.armed || s.recording || s.playing; });
+    }
+
+    function ensureScheduler() {
+      if (schedulerTimer) return;
+      schedulerTimer = setInterval(schedulerTick, 25);
+    }
+
+    function maybeStopScheduler() {
+      if (!schedulerActive() && schedulerTimer) {
+        clearInterval(schedulerTimer);
+        schedulerTimer = null;
+      }
+    }
+
+    function playClick(time, accent) {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = accent ? 1500 : 1000;
+      gain.gain.setValueAtTime(accent ? 0.22 : 0.14, time);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.05);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(time);
+      osc.stop(time + 0.06);
+    }
+
+    function scheduleLoopNoteAudio(midi, onTime, offTime) {
+      var osc = audioCtx.createOscillator();
+      osc.type = waveform;
+      osc.frequency.value = freqFromMidi(midi);
+      osc.detune.value = currentBend * 100;
+      var gain = audioCtx.createGain();
+      var safeOff = Math.max(offTime, onTime + 0.03);
+      gain.gain.setValueAtTime(0.0001, onTime);
+      gain.gain.exponentialRampToValueAtTime(0.28, onTime + 0.012);
+      gain.gain.setValueAtTime(0.28, Math.max(onTime + 0.012, safeOff - 0.001));
+      gain.gain.exponentialRampToValueAtTime(0.0001, safeOff + 0.14);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(onTime);
+      osc.stop(safeOff + 0.16);
+      return osc;
+    }
+
+    function scheduleSlotCycle(slot, cycleStart) {
+      var nowSchedule = audioCtx.currentTime;
+      slot.notes.forEach(function (note) {
+        var onTime = cycleStart + note.onT;
+        var offTime = cycleStart + note.offT;
+        slot.scheduledOscs.push(scheduleLoopNoteAudio(note.midi, onTime, offTime));
+
+        var offset = idToOffset(note.id);
+        if (offset !== null) {
+          var onDelay = Math.max(0, (onTime - nowSchedule) * 1000);
+          var offDelay = Math.max(0, (offTime - nowSchedule) * 1000);
+          slot.pendingVisual.push(setTimeout(function () { bumpLoopVisual(offset, 1); }, onDelay));
+          slot.pendingVisual.push(setTimeout(function () { bumpLoopVisual(offset, -1); }, offDelay));
+        }
+      });
+    }
+
+    function updateSlotUI(i) {
+      var slot = slots[i];
+      var refs = slotEls[i];
+      var hasLoop = slot.notes.length > 0;
+
+      refs.card.classList.toggle('has-loop', hasLoop);
+
+      refs.rec.textContent = (slot.armed || slot.recording) ? 'cancel' : 'rec';
+      refs.rec.classList.toggle('active', slot.armed || slot.recording);
+
+      refs.play.disabled = !hasLoop || slot.recording || slot.armed;
+      refs.play.textContent = slot.playing ? 'stop' : 'play';
+      refs.play.classList.toggle('active', slot.playing);
+
+      refs.clear.disabled = !hasLoop || slot.recording || slot.armed;
+
+      if (slot.armed) refs.status.textContent = 'armed…';
+      else if (slot.recording) refs.status.textContent = 'rec ' + slot.bars + ' bars…';
+      else if (slot.playing) refs.status.textContent = 'playing ' + slot.bars + ' bars';
+      else if (hasLoop) refs.status.textContent = slot.bars + ' bars';
+      else refs.status.textContent = 'empty';
+    }
+
+    function startRecording(i) {
+      var slot = slots[i];
+      ensureTransport();
+      ensureScheduler();
+      slot.bars = recordBars;
+      slot.durationSec = barSec() * recordBars;
+      slot.recordStartTime = nextBarBoundary(audioCtx.currentTime);
+      slot.recordEndTime = slot.recordStartTime + slot.durationSec;
+      slot.notes = [];
+      slot.armed = true;
+      slot.recording = false;
+      updateSlotUI(i);
+    }
+
+    function cancelRecording(i) {
+      var slot = slots[i];
+      slot.armed = false;
+      slot.recording = false;
+      slot.notes = [];
+      updateSlotUI(i);
+      maybeStopScheduler();
+    }
+
+    function finishRecording(i) {
+      var slot = slots[i];
+      slot.recording = false;
+      slot.notes.forEach(function (n) { if (n.offT === null) n.offT = slot.durationSec; });
+      updateSlotUI(i);
+      startPlayingSlot(i, slot.recordEndTime);
+    }
+
+    function startPlayingSlot(i, atTime) {
+      var slot = slots[i];
+      if (!slot.notes.length) return;
+      ensureScheduler();
+      slot.playing = true;
+      slot.nextCycleTime = atTime != null ? atTime : nextBarBoundary(audioCtx.currentTime);
+      updateSlotUI(i);
+    }
+
+    function stopPlayingSlot(i) {
+      var slot = slots[i];
+      slot.playing = false;
+      slot.scheduledOscs.forEach(function (o) { try { o.stop(audioCtx.currentTime); } catch (e) {} });
+      slot.scheduledOscs = [];
+      slot.pendingVisual.forEach(function (id) { clearTimeout(id); });
+      slot.pendingVisual = [];
+      updateSlotUI(i);
+      maybeStopScheduler();
+    }
+
+    function onSlotRecordClick(i) {
+      var slot = slots[i];
+      if (slot.armed || slot.recording) { cancelRecording(i); return; }
+      if (slot.playing) stopPlayingSlot(i);
+      startRecording(i);
+    }
+
+    function onSlotPlayClick(i) {
+      var slot = slots[i];
+      if (slot.recording || slot.armed) return;
+      if (slot.playing) stopPlayingSlot(i);
+      else startPlayingSlot(i, nextBarBoundary(audioCtx.currentTime));
+    }
+
+    function onSlotClearClick(i) {
+      var slot = slots[i];
+      if (slot.recording || slot.armed) return;
+      stopPlayingSlot(i);
+      slot.notes = [];
+      slot.bars = 0;
+      slot.durationSec = 0;
+      updateSlotUI(i);
+    }
+
+    function buildLoopSlots() {
+      var row = document.getElementById('slotsRow');
+      for (var i = 0; i < SLOT_COUNT; i++) {
+        var card = document.createElement('div');
+        card.className = 'loop-slot';
+
+        var num = document.createElement('div');
+        num.className = 'slot-num';
+        num.textContent = 'slot ' + (i + 1);
+
+        var recBtn = document.createElement('button');
+        recBtn.type = 'button';
+        recBtn.className = 'loop-btn';
+        recBtn.textContent = 'rec';
+
+        var playBtn = document.createElement('button');
+        playBtn.type = 'button';
+        playBtn.className = 'loop-btn';
+        playBtn.textContent = 'play';
+        playBtn.disabled = true;
+
+        var clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'loop-btn';
+        clearBtn.textContent = 'clear';
+        clearBtn.disabled = true;
+
+        var status = document.createElement('div');
+        status.className = 'slot-status';
+        status.textContent = 'empty';
+
+        card.appendChild(num);
+        card.appendChild(recBtn);
+        card.appendChild(playBtn);
+        card.appendChild(clearBtn);
+        card.appendChild(status);
+        row.appendChild(card);
+
+        slotEls.push({ card: card, rec: recBtn, play: playBtn, clear: clearBtn, status: status });
+
+        (function (idx) {
+          recBtn.addEventListener('click', function () { onSlotRecordClick(idx); });
+          playBtn.addEventListener('click', function () { onSlotPlayClick(idx); });
+          clearBtn.addEventListener('click', function () { onSlotClearClick(idx); });
+        })(i);
+      }
+    }
+
+    function schedulerTick() {
+      if (!audioCtx) return;
+      var now = audioCtx.currentTime;
+      var horizon = now + 0.1;
+
+      if (metronomeOn) {
+        while (nextMetroBeatTime < horizon) {
+          playClick(nextMetroBeatTime, metroBeatCount % transport.beatsPerBar === 0);
+          nextMetroBeatTime += beatSec();
+          metroBeatCount++;
+        }
+      }
+
+      slots.forEach(function (slot, i) {
+        if (slot.armed && now >= slot.recordStartTime) {
+          slot.armed = false;
+          slot.recording = true;
+          updateSlotUI(i);
+        }
+        if (slot.recording && now >= slot.recordEndTime) {
+          finishRecording(i);
+        }
+      });
+
+      slots.forEach(function (slot) {
+        if (!slot.playing) return;
+        while (slot.nextCycleTime < horizon) {
+          scheduleSlotCycle(slot, slot.nextCycleTime);
+          slot.nextCycleTime += slot.durationSec;
+        }
+      });
+    }
+
+    var metroBtn = document.getElementById('metroBtn');
+    metroBtn.addEventListener('click', function () {
+      metronomeOn = !metronomeOn;
+      if (metronomeOn) {
+        ensureTransport();
+        ensureScheduler();
+        nextMetroBeatTime = nextBarBoundary(audioCtx.currentTime);
+        metroBeatCount = 0;
+      } else {
+        maybeStopScheduler();
+      }
+      metroBtn.textContent = metronomeOn ? 'metronome: on' : 'metronome: off';
+      metroBtn.classList.toggle('active', metronomeOn);
     });
+
+    document.getElementById('bpmInput').addEventListener('change', function (e) {
+      var v = parseInt(e.target.value, 10);
+      if (isNaN(v)) v = transport.bpm;
+      transport.bpm = Math.max(40, Math.min(240, v));
+      e.target.value = transport.bpm;
+    });
+
+    document.getElementById('recordBars').addEventListener('change', function (e) {
+      recordBars = parseInt(e.target.value, 10);
+    });
+
+    buildLoopSlots();
+    buildKeyboard();
+  })();
+  </script>
+
+  <script>
+  (function () {
+    var root = document.documentElement;
+    var mql = window.matchMedia('(prefers-color-scheme: dark)');
+    var themeButtons = Array.prototype.slice.call(document.querySelectorAll('.theme-btn'));
+    var indicator = document.querySelector('.theme-indicator');
+
+    function resolvedFromMode(mode) {
+      return mode === 'system' ? (mql.matches ? 'dark' : 'light') : mode;
+    }
+
+    function moveIndicator(btn) {
+      if (!indicator) return;
+      indicator.style.transform = 'translateX(' + btn.offsetLeft + 'px)';
+    }
+
+    function applyMode(mode, persist) {
+      root.setAttribute('data-theme-pref', mode);
+      root.setAttribute('data-theme', resolvedFromMode(mode));
+      if (persist) localStorage.setItem('theme', mode);
+      themeButtons.forEach(function (btn) {
+        var active = btn.getAttribute('data-mode') === mode;
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        if (active) moveIndicator(btn);
+      });
+    }
+
+    themeButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        applyMode(btn.getAttribute('data-mode'), true);
+      });
+    });
+
+    mql.addEventListener('change', function () {
+      if (root.getAttribute('data-theme-pref') === 'system') applyMode('system', false);
+    });
+
+    window.addEventListener('resize', function () {
+      var current = themeButtons.filter(function (b) { return b.getAttribute('aria-pressed') === 'true'; })[0];
+      if (current) moveIndicator(current);
+    });
+
+    var initialMode = root.getAttribute('data-theme-pref') || 'system';
+    window.requestAnimationFrame(function () { applyMode(initialMode, false); });
   })();
   </script>
 </body>
